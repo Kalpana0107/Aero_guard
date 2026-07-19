@@ -67,10 +67,44 @@ if run:
     tab1, tab2, tab3 = st.tabs(["📊 Forecast & Risk", "🗺️ City Heatmap", "🧠 Why is AQI High?"])
 
     with tab1:
+        with tab1:
+            AQI_COLORS = [
+                (50, "#00e400"), (100, "#ffff00"), (150, "#ff7e00"),
+                (200, "#ff0000"), (300, "#8f3f97"), (500, "#7e0023"),
+            ]
+
+        def aqi_color(val):
+            for threshold, color in AQI_COLORS:
+                if val <= threshold:
+                    return color
+            return "#7e0023"
+
+        hours = list(range(1, 7))
+        values = dummy_forecast
+        bar_colors = [aqi_color(v) for v in values]
+
         fig, ax = plt.subplots(figsize=(10, 3.5))
-        ax.bar(range(1, 7), dummy_forecast, color="#ff7e00")
-        ax.set_title(f"Forecasted AQI — {city_name} (dummy data)")
+        bars = ax.bar(hours, values, color=bar_colors, edgecolor="#333", linewidth=0.8, width=0.6)
+
+        ax.axhline(100, color="#ff7e00", linestyle="--", alpha=0.7, linewidth=1.2,
+                   label="Sensitive group threshold (100)")
+        ax.axhline(150, color="#ff0000", linestyle="--", alpha=0.7, linewidth=1.2,
+                   label="Unhealthy threshold (150)")
+
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() + 3, f"{val:.0f}",
+                    ha="center", va="bottom", fontsize=9, fontweight="bold")
+
+        ax.set_ylabel("AQI", fontsize=10)
+        ax.set_title(f"Forecasted AQI — {city_name} (dummy data)", fontsize=11, fontweight="bold")
+        ax.legend(fontsize=8)
+        ax.set_facecolor("#f8f9fa")
+        fig.patch.set_facecolor("#f8f9fa")
+        ax.spines[["top", "right"]].set_visible(False)
+
         st.pyplot(fig)
+        plt.close(fig)
 
     with tab2:
         st.info("Heatmap arrives Day 7, once spatial.py is ready.")
