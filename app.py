@@ -76,19 +76,9 @@ st.title(f"🌫️ AeroGuard — {city_name}")
 
 if run:
 
-    # =====================================================================
-    # DUMMY DATA BLOCK 1 — shaped exactly like api_bridge.get_forecast()
-    # TODO(backend): replace with:
-    #   from api_bridge import get_forecast
-    #   result = get_forecast(city_code, lat, lon)
-    # =====================================================================
-    result = {
-        "current_aqi": 142.0,
-        "pm25": 65.0,
-        "forecast_6h": [78, 82, 91, 105, 98, 87],
-        "trend": "fluctuating",
-        "city": city_code,
-    }
+    from api_bridge import get_forecast
+    with st.spinner("Fetching live AQI & running forecast..."):
+        result = get_forecast(city_code, lat, lon)
 
     # ---- Metrics row ----
     c1, c2, c3, c4 = st.columns(4)
