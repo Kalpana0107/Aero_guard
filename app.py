@@ -66,16 +66,16 @@ with st.sidebar:
     persona_label = st.selectbox("Who are you?", list(PERSONAS.keys()))
     persona = PERSONAS[persona_label]
 
-    run = st.button("▶ Generate Forecast", use_container_width=True)
-
+    if st.button("▶ Generate Forecast", use_container_width=True):
+            st.session_state.forecast_generated = True
     st.divider()
     WAQI_TOKEN = "demo_token_placeholder"  # TODO(backend): pull from .env via os.getenv("WAQI_TOKEN")
 
 # ---- Main area ----
 st.title(f"🌫️ AeroGuard — {city_name}")
 
-if run:
-
+if st.session_state.get("forecast_generated", False):
+    
     from api_bridge import get_forecast
     with st.spinner("Fetching live AQI & running forecast..."):
         result = get_forecast(city_code, lat, lon)
