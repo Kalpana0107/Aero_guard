@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 import folium
-import torch
+from tensorflow import keras
 from dotenv import load_dotenv
 
 from modules.data_collector import fetch_waqi
@@ -51,11 +51,9 @@ def _load_models():
     except Exception as e:
         print(f"[api_bridge] SARIMA load failed: {e}")
 
-    # --- LSTM (PyTorch) ---
+    # --- LSTM (Keras) ---
     try:
-        _lstm_model = build_lstm()
-        _lstm_model.load_state_dict(torch.load("models/lstm_model.pt"))
-        _lstm_model.eval()
+        _lstm_model = keras.models.load_model("models/lstm_model.keras")
         with open("models/lstm_scale_max.pkl", "rb") as f:
             _lstm_scale_max = pickle.load(f)
     except Exception as e:
@@ -75,9 +73,8 @@ def _forecast_sarima():
 def _forecast_lstm(seq_len=24, target_col="aqi"):
     df = pd.read_csv("data/processed/aqi_processed.csv", index_col=0)
     values = df[target_col].values[-seq_len:] / _lstm_scale_max
-    x = torch.tensor(values.reshape(1, seq_len, 1), dtype=torch.float32)
-    with torch.no_grad():
-        pred = _lstm_model(x).numpy().flatten()
+    x = values.reshape(1, seq_len, 1).astype(np.float32)
+    pred = _lstm_model.predict(x, verbose=0).flatten()
     return [max(0, min(500, float(v) * _lstm_scale_max)) for v in pred]
 
 

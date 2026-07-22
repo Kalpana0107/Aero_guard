@@ -1,8 +1,9 @@
 import pandas as pd
 import pickle
 import numpy as np
-import torch
-import torch.nn as nn
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import xgboost as xgb
@@ -47,7 +48,7 @@ def train_xgboost(df: pd.DataFrame, target_col: str = "aqi"):
 
 
 # ---------------------------------------------------------
-# LSTM (PyTorch)
+# LSTM (Keras)
 # ---------------------------------------------------------
 def create_sequences(data: np.ndarray, seq_len: int = 24, horizon: int = 6):
     X, y = [], []
@@ -57,21 +58,14 @@ def create_sequences(data: np.ndarray, seq_len: int = 24, horizon: int = 6):
     return np.array(X), np.array(y)
 
 
-class LSTMForecaster(nn.Module):
-    def __init__(self, seq_len=24, horizon=6):
-        super().__init__()
-        self.lstm1 = nn.LSTM(input_size=1, hidden_size=64, batch_first=True)
-        self.lstm2 = nn.LSTM(input_size=64, hidden_size=32, batch_first=True)
-        self.fc = nn.Linear(32, horizon)
-
-    def forward(self, x):
-        x, _ = self.lstm1(x)
-        x, (h_n, _) = self.lstm2(x)
-        return self.fc(h_n[-1])
-
-
 def build_lstm(seq_len: int = 24, horizon: int = 6):
-    return LSTMForecaster(seq_len, horizon)
+    model = Sequential([
+        LSTM(64, input_shape=(seq_len, 1), return_sequences=True),
+        LSTM(32, return_sequences=False),
+        Dense(horizon)
+    ])
+    model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+    return model
 
 
 def train_lstm(df, target_col="aqi", seq_len=24, horizon=6, epochs=20):
@@ -83,29 +77,19 @@ def train_lstm(df, target_col="aqi", seq_len=24, horizon=6, epochs=20):
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
     split = int(len(X) * 0.85)
-    X_train = torch.tensor(X[:split], dtype=torch.float32)
-    y_train = torch.tensor(y[:split], dtype=torch.float32)
-    X_val = torch.tensor(X[split:], dtype=torch.float32)
-    y_val = torch.tensor(y[split:], dtype=torch.float32)
+    X_train = X[:split]
+    y_train = y[:split]
+    X_val = X[split:]
+    y_val = y[split:]
 
     model = build_lstm(seq_len, horizon)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    loss_fn = nn.MSELoss()
-
-    for epoch in range(epochs):
-        model.train()
-        optimizer.zero_grad()
-        pred = model(X_train)
-        loss = loss_fn(pred, y_train)
-        loss.backward()
-        optimizer.step()
-
-    model.eval()
-    with torch.no_grad():
-        val_loss = loss_fn(model(X_val), y_val).item()
+    
+    model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=epochs, verbose=0)
+    
+    val_loss = model.evaluate(X_val, y_val, verbose=0)[0]
     print(f"LSTM trained — final validation MSE: {val_loss:.4f}")
 
-    torch.save(model.state_dict(), "models/lstm_model.pt")
+    model.save("models/lstm_model.keras")
     with open("models/lstm_scale_max.pkl", "wb") as f:
         pickle.dump(scale_max, f)
 

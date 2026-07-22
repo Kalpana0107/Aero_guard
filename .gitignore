@@ -11,6 +11,9 @@ __pycache__/
 # Trained models (can be large — you can remove this line if you WANT to commit them for Streamlit Cloud deployment)
 # models/*.pkl
 # models/*.keras
+models/*.pkl
+models/*.json
+models/*.keras
 
 # Raw data (keep out of git, regenerate from APIs anytime)
 data/raw/
