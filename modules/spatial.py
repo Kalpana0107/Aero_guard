@@ -136,7 +136,7 @@ def create_folium_heatmap(
     m = folium.Map(
         location=[lat, lon],
         zoom_start=11,
-        tiles="CartoDB positron",
+        
     )
 
     if stations:

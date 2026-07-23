@@ -169,6 +169,6 @@ def _demo_explanation(current, forecast, trend):
 # FUNCTION 4: get_map(lat, lon, token)
 # ─────────────────────────────────────────────────────────────
 def get_map(lat: float, lon: float, token: str) -> folium.Map:
-    """Person A calls this to get the Folium map for st_folium()."""
     stations = fetch_multi_station_aqi(lat, lon, token)
+    print(f"[DEBUG] Found {len(stations)} stations: {stations}")
     return create_folium_heatmap(stations, lat, lon)
