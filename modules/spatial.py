@@ -32,9 +32,15 @@ def fetch_multi_station_aqi(
 
     data = resp.json().get("data", [])
 
+    if not isinstance(data, list):
+        data = []
+
     stations = []
 
     for s in data:
+        if not isinstance(s, dict):
+            continue
+        
         aqi = s.get("aqi")
 
         if aqi and str(aqi).isdigit():
