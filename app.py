@@ -85,9 +85,6 @@ with st.sidebar:
     persona_label = st.selectbox("Who are you?", list(PERSONAS.keys()))
     persona = PERSONAS[persona_label]
 
-    model_label = st.selectbox("Forecast model", ["XGBoost", "SARIMA", "LSTM"])
-    model_choice = model_label.lower()
-
     if st.button("▶ Generate Forecast", use_container_width=True):
         st.session_state.forecast_generated = True
         st.session_state.city_name = city_name
@@ -96,7 +93,6 @@ with st.sidebar:
         st.session_state.city_code = city_code
         st.session_state.persona = persona
         st.session_state.persona_label = persona_label
-        st.session_state.model_choice = model_choice
 
 # ---- Main area ----
 if not st.session_state.get("forecast_generated", False):
@@ -110,12 +106,11 @@ else:
     city_code = st.session_state.city_code
     persona = st.session_state.persona
     persona_label = st.session_state.persona_label
-    model_choice = st.session_state.model_choice
 
     st.title(f"🌫️ AeroGuard — {city_name}")
 
     with st.spinner("Fetching live AQI & running forecast..."):
-        result = get_forecast(city_code, lat, lon, model_choice=model_choice)
+        result = get_forecast(city_code, lat, lon, model_choice="xgboost")
 
     # ---- Metrics row ----
     c1, c2, c3, c4 = st.columns(4)
@@ -123,7 +118,6 @@ else:
     c2.metric("PM2.5", f"{result.get('pm25', 'N/A')} µg/m³")
     c3.metric("6h Peak AQI", f"{max(result['forecast_6h']):.0f}")
     c4.metric("Trend", result["trend"].capitalize())
-    st.caption(f"Model used: **{result.get('model_used', model_choice).upper()}**")
     st.divider()
 
     tab1, tab2, tab3 = st.tabs(["📊 Forecast & Risk", "🗺️ City Heatmap", "🧠 Why is AQI High?"])
@@ -195,7 +189,10 @@ else:
                 """, unsafe_allow_html=True)
 
         worst = max(timeline, key=lambda x: x["aqi"])
-        st.info(f"📌 **{persona_label} Advice ({worst['hour_offset']}):** {worst['advice']}")
+        st.info(
+            f"📌 **{persona_label} Advice ({worst['hour_offset']} — AQI {worst['aqi']}, {worst['category']}):**\n\n"
+            f"{worst['advice']}"
+        )
 
     # =====================================================================
     # TAB 2 — Real Heatmap from api_bridge.get_map()
