@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 import folium
+import streamlit as st
 from tensorflow import keras
 from dotenv import load_dotenv
 
@@ -168,7 +169,7 @@ def _demo_explanation(current, forecast, trend):
 # ─────────────────────────────────────────────────────────────
 # FUNCTION 4: get_map(lat, lon, token)
 # ─────────────────────────────────────────────────────────────
-def get_map(lat: float, lon: float, token: str) -> folium.Map:
+@st.cache_data(ttl=600, show_spinner=False)
+def get_map(lat: float, lon: float, token: str):
     stations = fetch_multi_station_aqi(lat, lon, token)
-    print(f"[DEBUG] Found {len(stations)} stations: {stations}")
     return create_folium_heatmap(stations, lat, lon)

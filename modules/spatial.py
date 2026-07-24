@@ -10,7 +10,7 @@ def fetch_multi_station_aqi(
     lat: float,
     lon: float,
     token: str,
-    radius_deg: float = 0.2,
+    radius_deg: float = 0.15,
 ) -> list:
     """
     Query WAQI's bounds-search endpoint for all monitoring stations
@@ -32,9 +32,15 @@ def fetch_multi_station_aqi(
 
     data = resp.json().get("data", [])
 
+    if not isinstance(data, list):
+        data = []
+
     stations = []
 
     for s in data:
+        if not isinstance(s, dict):
+            continue
+        
         aqi = s.get("aqi")
 
         if aqi and str(aqi).isdigit():
@@ -55,7 +61,7 @@ def fetch_multi_station_aqi(
 
 def idw_interpolate(
     stations: list,
-    grid_size: int = 25,
+    grid_size: int = 15,
     power: int = 2,
 ) -> list:
     """
@@ -142,6 +148,7 @@ def create_folium_heatmap(
     if stations:
         heat_points = idw_interpolate(stations)
 
+        print(f"[DEBUG] heat_points count: {len(heat_points)}")
         HeatMap(
             heat_points,
             radius=18,
