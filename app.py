@@ -69,12 +69,14 @@ with st.sidebar:
         "Pune": (18.5204, 73.8567, "pune"),
         "Chennai": (13.0827, 80.2707, "chennai"),
     }
-    city_name = st.selectbox("Select City", list(CITIES.keys()))
-    lat, lon, city_code = CITIES[city_name]
-
-    if st.checkbox("Custom coordinates"):
-        lat = st.number_input("Latitude", value=lat, format="%.4f")
-        lon = st.number_input("Longitude", value=lon, format="%.4f")
+    city_name = st.selectbox("Select City", list(CITIES.keys()), index=None, placeholder="Select City...")
+    if city_name:
+        lat, lon, city_code = CITIES[city_name]
+        if st.checkbox("Custom coordinates"):
+            lat = st.number_input("Latitude", value=lat, format="%.4f")
+            lon = st.number_input("Longitude", value=lon, format="%.4f")
+    else:
+        lat, lon, city_code = None, None, None
 
     PERSONAS = {
         "General Public": "general",
@@ -86,13 +88,16 @@ with st.sidebar:
     persona = PERSONAS[persona_label]
 
     if st.button("▶ Generate Forecast", use_container_width=True):
-        st.session_state.forecast_generated = True
-        st.session_state.city_name = city_name
-        st.session_state.lat = lat
-        st.session_state.lon = lon
-        st.session_state.city_code = city_code
-        st.session_state.persona = persona
-        st.session_state.persona_label = persona_label
+        if not city_name:
+            st.error("Please select a city first.")
+        else:
+            st.session_state.forecast_generated = True
+            st.session_state.city_name = city_name
+            st.session_state.lat = lat
+            st.session_state.lon = lon
+            st.session_state.city_code = city_code
+            st.session_state.persona = persona
+            st.session_state.persona_label = persona_label
 
 # ---- Main area ----
 if not st.session_state.get("forecast_generated", False):
