@@ -27,12 +27,27 @@ def fetch_multi_station_aqi(
         f"?latlng={lat1},{lon1},{lat2},{lon2}&token={token}"
     )
 
-    resp = requests.get(url, timeout=10)
-    resp.raise_for_status()
+    # Logging/Debugging WAQI token and request info
+    masked_token = "empty"
+    if token:
+        masked_token = f"{token[:4]}...{token[-4:]}" if len(token) > 8 else "***"
+    print(f"[AeroGuard Debug] fetch_multi_station_aqi called. Token len={len(token)}, Masked='{masked_token}'")
+    print(f"[AeroGuard Debug] Request URL: {url}")
 
-    data = resp.json().get("data", [])
+    try:
+        resp = requests.get(url, timeout=10)
+        print(f"[AeroGuard Debug] Response Status: {resp.status_code}")
+        print(f"[AeroGuard Debug] Response Text (first 1000 chars): {resp.text[:1000]}")
+        resp.raise_for_status()
+        payload = resp.json()
+    except Exception as e:
+        print(f"[AeroGuard Debug] Network request or JSON parse failed: {e}")
+        return []
+
+    data = payload.get("data", [])
 
     if not isinstance(data, list):
+        print(f"[AeroGuard Debug] Expected a list for 'data', got: {type(data)} ({repr(data)})")
         data = []
 
     stations = []
@@ -41,22 +56,43 @@ def fetch_multi_station_aqi(
         if not isinstance(s, dict):
             continue
         
-        aqi = s.get("aqi")
+        aqi_val = s.get("aqi")
+        if aqi_val is None:
+            continue
 
-        if aqi and str(aqi).isdigit():
+        try:
+            # Parse AQI robustly
+            aqi_str = str(aqi_val).strip()
+            if aqi_str in ["", "-", "n/a", "null", "none"]:
+                continue
+            aqi = int(round(float(aqi_str)))
+            
+            # Parse lat/lon robustly
+            lat_val = float(s["lat"])
+            lon_val = float(s["lon"])
+            
+            # Extract station name robustly
+            station_info = s.get("station", {})
+            name = "Unknown"
+            if isinstance(station_info, dict):
+                name = station_info.get("name", "Unknown")
+            elif isinstance(station_info, str):
+                name = station_info
+
             stations.append(
                 {
-                    "lat": s["lat"],
-                    "lon": s["lon"],
-                    "aqi": int(aqi),
-                    "name": s.get("station", {}).get(
-                        "name",
-                        "Unknown",
-                    ),
+                    "lat": lat_val,
+                    "lon": lon_val,
+                    "aqi": aqi,
+                    "name": name,
                 }
             )
+        except (ValueError, TypeError, KeyError):
+            continue
 
+    print(f"[AeroGuard Debug] Parsed {len(stations)} valid stations.")
     return stations
+
 
 
 def idw_interpolate(
@@ -142,27 +178,41 @@ def create_folium_heatmap(
     m = folium.Map(
         location=[lat, lon],
         zoom_start=11,
-        
     )
 
     if stations:
         heat_points = idw_interpolate(stations)
 
         print(f"[DEBUG] heat_points count: {len(heat_points)}")
+        
+        # Color mapping: green (0-50), yellow (51-100), orange (101-150), red/darkred (150+)
+        gradient_map = {
+            0.0: '#00e400',   # Green (AQI 0)
+            0.1: '#00e400',   # Green (AQI 50)
+            0.2: '#ffff00',   # Yellow (AQI 100)
+            0.3: '#ff7e00',   # Orange (AQI 150)
+            0.4: '#ff0000',   # Red (AQI 200)
+            1.0: '#7e0023'    # Dark Red (AQI 500)
+        }
+
         HeatMap(
             heat_points,
-            radius=18,
-            blur=22,
+            radius=25,
+            blur=15,
             max_zoom=13,
+            max=1.0,          # Set max intensity to 1.0 to map weights absolutely (0-500 scale normalized by 500)
+            gradient=gradient_map,
+            min_opacity=0.3,
         ).add_to(m)
 
         for s in stations:
             folium.CircleMarker(
                 location=[s["lat"], s["lon"]],
-                radius=6,
+                radius=5,
                 popup=f"{s['name']}: AQI {s['aqi']}",
                 color="#004d4d",
                 fill=True,
+                fill_color="#004d4d",
                 fill_opacity=0.9,
             ).add_to(m)
 
