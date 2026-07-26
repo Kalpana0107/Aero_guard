@@ -88,7 +88,8 @@ with st.sidebar:
     persona = PERSONAS[persona_label]
 
     if st.button("▶ Generate Forecast", use_container_width=True):
-        if not city_name:
+        if city_name == "-- Select a city --" or not city_name:
+            st.session_state.forecast_generated = False
             st.error("Please select a city first.")
         else:
             st.session_state.forecast_generated = True
@@ -100,6 +101,9 @@ with st.sidebar:
             st.session_state.persona_label = persona_label
 
 # ---- Main area ----
+if not city_name:
+    st.session_state.forecast_generated = False
+
 if not st.session_state.get("forecast_generated", False):
     st.title("🌫️ AeroGuard")
     st.info("👈 Select your city and persona in the sidebar, then click **Generate Forecast**.")
