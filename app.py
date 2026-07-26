@@ -217,7 +217,8 @@ else:
     # TAB 3 — Real Explanation from api_bridge.get_explanation()
     # =====================================================================
     with tab3:
-        exp_data = get_explanation(result["current_aqi"], result["forecast_6h"])
+        with st.spinner("Computing SHAP explanation..."):
+            exp_data = get_explanation(result["current_aqi"], result["forecast_6h"])
 
         st.subheader("Why is AQI Changing?")
         st.markdown(f"<div class='explain-box'>{exp_data['explanation']}</div>",

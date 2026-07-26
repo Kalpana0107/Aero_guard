@@ -82,6 +82,7 @@ def _forecast_lstm(seq_len=24, target_col="aqi"):
 # ─────────────────────────────────────────────────────────────
 # FUNCTION 1: get_forecast(city, lat, lon)
 # ─────────────────────────────────────────────────────────────
+@st.cache_data(ttl=300, show_spinner=False)
 def get_forecast(city: str, lat: float, lon: float, model_choice: str = "xgboost") -> dict:
     """
     Person A calls this to get the AQI forecast.
@@ -137,6 +138,7 @@ def get_risk_timeline(forecast_6h: list, persona: str) -> list:
 # ─────────────────────────────────────────────────────────────
 # FUNCTION 3: get_explanation(current_aqi, forecast_6h)
 # ─────────────────────────────────────────────────────────────
+@st.cache_data(ttl=300, show_spinner=False)
 def get_explanation(current_aqi: float, forecast_6h: list) -> dict:
     """Person A calls this to fill the explainability text box."""
     _load_models()
