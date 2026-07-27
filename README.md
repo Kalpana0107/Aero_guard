@@ -157,6 +157,7 @@ Create a `.env` file in the project root.
 
 ```env
 WAQI_API_KEY=YOUR_API_KEY
+OWM_API_KEY=YOUR_API_KEY
 ```
 
 ---
