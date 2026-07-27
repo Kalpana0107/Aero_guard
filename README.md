@@ -1,168 +1,308 @@
-# 🌫️ AeroGuard — Hyper-Local Air Quality Forecaster
+# 🌍 AeroGuard – AI-Powered Hyper-Local Air Quality Forecasting System
 
-AeroGuard is a full-stack AI web app that forecasts hourly air quality (AQI) for your exact location, explains *why* pollution levels are changing using SHAP, and gives persona-specific health advice — all rendered on an interactive city heatmap.
+<div align="center">
 
+![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-XGBoost%20%7C%20LSTM%20%7C%20SARIMA-success)
+![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
+![Status](https://img.shields.io/badge/Status-Completed-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
----
+**Predict. Visualize. Protect.**
 
-## ✨ Features
+An AI-powered air quality forecasting platform that predicts upcoming AQI, explains the reasons behind pollution changes using Explainable AI (SHAP), visualizes pollution hotspots on an interactive map, and provides personalized health recommendations.
 
-- **6-hour AQI forecasting** using an ensemble of 3 models — SARIMA, XGBoost, and LSTM
-- **Persona-aware health advice** — General Public, Children/Elderly, Outdoor Workers, Athletes
-- **Explainable AI** — SHAP values translated into a plain-English "why is AQI high right now?" summary
-- **Live city heatmap** — real monitoring stations interpolated (IDW) into a smooth pollution gradient via Folium
-- **Graceful demo-mode fallback** — the app never crashes even if a live API or model is temporarily unavailable
-
----
-
-## 🧱 Tech Stack
-
-| Layer | Tools |
-|---|---|
-| Frontend | Streamlit, Matplotlib, Folium + streamlit-folium |
-| Backend / ML | Python, XGBoost, statsmodels (SARIMA), PyTorch (LSTM), SHAP, scikit-learn |
-| Data Sources | WAQI API (live AQI), OpenWeatherMap (weather), Open-Meteo (historical AQI) |
-| Deployment | Streamlit Community Cloud |
+</div>
 
 ---
 
-## 📁 Project Structure
+# 📖 Overview
+
+AeroGuard is an intelligent environmental monitoring system designed to forecast Air Quality Index (AQI) using Machine Learning and Time Series models.
+
+Instead of only displaying current pollution levels, AeroGuard predicts future AQI for the next six hours, helping users take preventive measures before air quality deteriorates.
+
+The system combines multiple forecasting techniques with Explainable AI to make predictions transparent and trustworthy.
+
+---
+
+# ✨ Features
+
+- 🌫️ Hyper-local AQI forecasting
+- 📈 6-hour AQI prediction
+- 🤖 Ensemble prediction using:
+  - SARIMA
+  - XGBoost
+  - LSTM
+- 🧠 Explainable AI using SHAP values
+- 🗺️ Interactive pollution heatmap
+- ❤️ Personalized health recommendations
+- 👨‍👩‍👧 Multiple user personas:
+  - General Public
+  - Children & Elderly
+  - Athletes
+  - Outdoor Workers
+- 📊 AQI trend visualization
+- ⚡ Fast and lightweight Streamlit interface
+
+---
+
+# 🏗️ Tech Stack
+
+## Programming Language
+
+- Python
+
+## Machine Learning
+
+- XGBoost
+- TensorFlow / Keras
+- SARIMA (StatsModels)
+
+## Data Processing
+
+- Pandas
+- NumPy
+- Scikit-learn
+
+## Explainable AI
+
+- SHAP
+
+## Visualization
+
+- Streamlit
+- Folium
+- Matplotlib
+- Altair
+
+## APIs
+
+- WAQI (World Air Quality Index)
+- OWM (Open Weather Map)
+---
+
+# 📂 Project Structure
 
 ```
-Aero_guard/
-├── app.py                  # Streamlit frontend — entry point
-├── api_bridge.py           # Shared contract — the ONLY file the frontend imports from the backend
-├── modules/
-│   ├── data_collector.py   # WAQI / OpenWeatherMap / Open-Meteo API calls
-│   ├── preprocessor.py     # Cleaning, lag features, normalization
-│   ├── forecaster.py       # SARIMA + XGBoost + LSTM training & inference
-│   ├── health_risk.py      # EPA AQI breakpoints + persona-specific advice
-│   ├── explainer.py        # SHAP values → natural-language explanations
-│   └── spatial.py          # IDW interpolation + Folium heatmap generation
-├── data/
-│   ├── raw/                # Untouched API responses (gitignored)
-│   └── processed/          # Cleaned, model-ready CSVs
-├── models/                 # Saved trained models (.pkl / .json / .pt)
-├── .env.example             # Template for required API keys
+AeroGuard/
+│
+├── app.py
+├── api_bridge.py
 ├── requirements.txt
-└── .gitignore
+├── .env.example
+│
+├── modules/
+│   ├── data_collector.py
+│   ├── preprocessor.py
+│   ├── forecaster.py
+│   ├── explainer.py
+│   ├── health_risk.py
+│   └── spatial.py
+│
+├── models/
+│   ├── xgboost_model.json
+│   ├── lstm_model.keras
+│   └── *.pkl
+│
+├── data/
+│   └── processed/
+│
+└── README.md
 ```
 
 ---
 
-## ⚙️ Setup
+# ⚙️ Installation
 
-### 1. Clone and enter the project
+## Clone the repository
+
 ```bash
-git clone https://github.com/YOUR_ORG/aeroguard.git
-cd Aero_guard
+git clone https://github.com/yourusername/AeroGuard.git
+
+cd AeroGuard
 ```
 
-### 2. Create and activate a virtual environment
+## Create a virtual environment
 
-**Windows (PowerShell):**
-```powershell
+### Windows
+
+```bash
 python -m venv venv
-venv\Scripts\Activate.ps1
+
+venv\Scripts\activate
 ```
 
-**macOS / Linux:**
+### Linux / macOS
+
 ```bash
 python3 -m venv venv
+
 source venv/bin/activate
 ```
 
-### 3. Install dependencies
+---
+
+## Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
-Copy the template and fill in your real API keys:
-```bash
-cp .env.example .env
-```
+---
+
+# 🔑 Environment Variables
+
+Create a `.env` file in the project root.
 
 ```env
-WAQI_TOKEN=your_waqi_token_here
-OWM_KEY=your_openweathermap_key_here
-DEFAULT_CITY=mumbai
-DEFAULT_LAT=19.0760
-DEFAULT_LON=72.8777
+WAQI_API_KEY=YOUR_API_KEY
 ```
 
-Get free API keys here:
-- WAQI Token → https://aqicn.org/data-platform/token/
-- OpenWeatherMap Key → https://openweathermap.org/api
+---
 
-### 5. Run the app
+# ▶️ Run the Application
+
 ```bash
 streamlit run app.py
 ```
-Visit `http://localhost:8501` in your browser.
+
+The application will launch in your browser.
 
 ---
 
-## 🧠 Training the Models
+# 🧠 Machine Learning Pipeline
 
-Before the forecast tab shows real predictions, train and save each model at least once:
-
-```bash
-python modules/data_collector.py      # sanity-check API keys
-python modules/preprocessor.py        # build data/processed/aqi_processed.csv
-python modules/forecaster.py          # train SARIMA + XGBoost + LSTM, save to models/
+```
+AQI Data
+     │
+     ▼
+Data Collection
+     │
+     ▼
+Preprocessing
+     │
+     ▼
+Feature Engineering
+     │
+     ▼
+ ┌───────────────┐
+ │   SARIMA      │
+ ├───────────────┤
+ │   XGBoost     │
+ ├───────────────┤
+ │    LSTM       │
+ └───────────────┘
+      │
+      ▼
+ Ensemble Prediction
+      │
+      ▼
+ SHAP Explanation
+      │
+      ▼
+ Interactive Dashboard
 ```
 
-Model comparison metrics (MAE / RMSE / MAPE) are written to `models/results.txt`.
+---
+
+# 📊 Forecasting Models
+
+### SARIMA
+
+Captures seasonal and temporal trends in AQI data.
+
+### XGBoost
+
+Learns complex nonlinear relationships between environmental variables.
+
+### LSTM
+
+Captures long-term sequential dependencies for improved forecasting.
+
+### Ensemble
+
+Combines predictions from all three models to improve overall accuracy and robustness.
 
 ---
 
-## 🔌 The API Contract
+# 🧠 Explainable AI
 
-The frontend never imports backend logic directly — it only calls these 4 functions from `api_bridge.py`:
+AeroGuard uses **SHAP (SHapley Additive Explanations)** to explain every prediction.
 
-| Function | Returns |
-|---|---|
-| `get_forecast(city, lat, lon)` | `{current_aqi, pm25, forecast_6h[6], trend, city}` |
-| `get_risk_timeline(forecast_6h, persona)` | `[{aqi, category, color, advice, hour_offset}] × 6` |
-| `get_explanation(current_aqi, forecast_6h)` | `{explanation, trend}` |
-| `get_map(lat, lon, token)` | `folium.Map` object |
+Users can understand:
 
-This keeps frontend and backend development fully decoupled — either side can change their internals without breaking the other.
+- Which features increased AQI
+- Which features reduced AQI
+- Overall contribution of each environmental factor
 
----
-
-## 🚀 Deployment
-
-Deployed on **Streamlit Community Cloud**:
-
-1. Push to GitHub `main` branch
-2. Go to [share.streamlit.io](https://share.streamlit.io) → New app → select this repo + `app.py`
-3. Add `WAQI_TOKEN` and `OWM_KEY` under **Advanced Settings → Secrets**
-4. Deploy
-
-Live app: `<add your deployed URL here once live>`
+This improves transparency and trust in the model.
 
 ---
 
-## 👥 Team
+# ❤️ Health Advisory
 
-| Role | Responsibilities |
-|---|---|
-| **Frontend** | Streamlit UI, charts, heatmap embed, styling, deployment |
-| **Backend** | Data collection, model training, health-risk logic, SHAP explainability, spatial interpolation |
+Based on the predicted AQI, AeroGuard provides personalized recommendations for:
 
----
+- 👨 General Public
+- 👶 Children
+- 👵 Elderly
+- 🏃 Athletes
+- 👷 Outdoor Workers
 
-## 📌 Roadmap
 
-- [ ] Ensemble all 3 models instead of picking one
-- [ ] Real-time threshold-based alerts
-- [ ] Multi-city comparison dashboard
-- [ ] Historical forecast-accuracy tracking
 
 ---
 
-## 📄 License
+# 📦 Main Dependencies
 
-This project was built for educational and hackathon purposes.
+- Streamlit
+- TensorFlow
+- XGBoost
+- SHAP
+- Pandas
+- NumPy
+- Scikit-learn
+- StatsModels
+- Folium
+- Matplotlib
+
+---
+
+# 🚀 Future Improvements
+
+- Live satellite pollution integration
+- Weather-aware AQI forecasting
+- Mobile application
+- Multi-city support
+- Push notifications
+- Pollution trend analytics
+- Historical comparison dashboard
+- IoT sensor integration
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to your branch
+5. Open a Pull Request
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+# 👩‍💻 Author
+
+**Kalpana Naikodi**
+
+If you found this project useful, consider giving it a ⭐ on GitHub!         
+
